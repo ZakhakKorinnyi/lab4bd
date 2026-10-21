@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from models import Weather, Wind, WindDirectionEnum
 
 # Підключення до бази даних
-engine = create_engine('postgresql+psycopg2://postgres:12345@localhost/weather_db')
+engine = create_engine('mysql+pymysql://root:@localhost/weather_db')
 Session = sessionmaker(bind=engine)
 session = Session()
 
