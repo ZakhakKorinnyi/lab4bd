@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Enum, Date, Time, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Enum, Date, Time, ForeignKey, Boolean
 from sqlalchemy.orm import declarative_base, relationship
 import enum
 
@@ -35,6 +35,6 @@ class Weather(Base):
     country = Column(String, nullable=False)
     last_updated = Column(Date)
     sunrise = Column(Time)
+    is_safe_to_go_out = Column(Boolean, nullable=True)
 
-    # Налаштування зв'язку з новою таблицею вітру
     wind = relationship("Wind", back_populates="weather", cascade="all, delete-orphan", uselist=False)
