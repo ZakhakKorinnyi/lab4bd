@@ -77,19 +77,55 @@ def show_data():
         print(f"{w.country} ({w.last_updated}) | Вітер: {w.wind.wind_kph} км/год | {safe_icon}")
     print("-------------------------------\n")
 
+def search_weather():
+    print("\n--- ПОШУК ПОГОДИ ---")
+    search_country = input("Введіть назву країни (наприклад, Ukraine): ").strip()
+    search_date = input("Введіть дату у форматі YYYY-MM-DD: ").strip()
+    
+    try:
+        # Форматування введеної дати
+        date_obj = datetime.strptime(search_date, '%Y-%m-%d').date()
+        
+        # Пошук записів у базі за країною та датою
+        results = session.query(Weather).filter(
+            Weather.country.ilike(f"%{search_country}%"),
+            Weather.last_updated == date_obj
+        ).all()
+        
+        if not results:
+            print("За вашим запитом нічого не знайдено.\n")
+            return
+            
+        print(f"\nЗнайдено записів: {len(results)}")
+        for w in results:
+            # Зчитування статусу безпеки
+            safe_icon = "Можна гуляти" if w.wind.is_safe_to_go_out else "Сильний вітер, залишайтесь вдома"
+            
+            # Виведення всієї наявної інформації
+            print(f"Країна: {w.country}")
+            print(f"Дата оновлення: {w.last_updated}, Схід сонця: {w.sunrise}")
+            print(f"Вітер: {w.wind.wind_kph} км/год, Напрямок: {w.wind.wind_direction.value}, Кут: {w.wind.wind_degree}°")
+            print(f"Статус: {safe_icon}\n")
+            
+    except ValueError:
+        print("Невірний формат дати! Використовуйте YYYY-MM-DD.\n")
+
 def menu():
     while True:
         print("=== КОНСОЛЬНЕ МЕНЮ ===")
         print("1. Завантажити дані з CSV в базу")
         print("2. Вивести дані на екран")
-        print("3. Вихід")
-        choice = input("Оберіть дію (1-3): ")
+        print("3. Пошук за країною та датою")
+        print("4. Вихід")
+        choice = input("Оберіть дію (1-4): ")
         
         if choice == '1':
             load_data()
         elif choice == '2':
             show_data()
         elif choice == '3':
+            search_weather()
+        elif choice == '4':
             print("Вихід з програми...")
             break
         else:
