@@ -14,20 +14,18 @@ class WindDirectionEnum(enum.Enum):
     SE = "SE"
     SW = "SW"
 
-# Нова таблиця для категорії "Вітер"
 class Wind(Base):
     __tablename__ = 'wind_data'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    weather_id = Column(Integer, ForeignKey('weather_data.id'), unique=True) # Зв'язок з основною таблицею
+    weather_id = Column(Integer, ForeignKey('weather_data.id'), unique=True)
     wind_degree = Column(Integer)
     wind_kph = Column(Float)
     wind_direction = Column(Enum(WindDirectionEnum))
+    is_safe_to_go_out = Column(Boolean, nullable=True) # <-- Тепер колонка тут
 
-    # Налаштування зв'язку для зручного доступу з коду
     weather = relationship("Weather", back_populates="wind")
 
-# Оновлена основна таблиця (без колонок вітру)
 class Weather(Base):
     __tablename__ = 'weather_data'
 
@@ -35,6 +33,6 @@ class Weather(Base):
     country = Column(String, nullable=False)
     last_updated = Column(Date)
     sunrise = Column(Time)
-    is_safe_to_go_out = Column(Boolean, nullable=True)
+    
 
     wind = relationship("Wind", back_populates="weather", cascade="all, delete-orphan", uselist=False)

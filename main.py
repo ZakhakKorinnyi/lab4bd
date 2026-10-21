@@ -38,7 +38,7 @@ def load_data():
                 break
             
             # Форматування дати та часу
-            date_str = row['last_updated'].split()[0]  # Відкидаємо час, залишаємо лише дату
+            date_str = row['last_updated'].split()[0] 
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
             time_obj = datetime.strptime(row['sunrise'], '%I:%M %p').time()
             
@@ -50,15 +50,15 @@ def load_data():
             weather = Weather(
                 country=row['country'],
                 last_updated=date_obj,
-                sunrise=time_obj,
-                is_safe_to_go_out=is_safe
+                sunrise=time_obj
             )
             
-            # Створення пов'язаної таблиці вітру
+            # 4. Створення таблиці вітру
             wind = Wind(
                 wind_degree=int(row['wind_degree']),
                 wind_kph=wind_speed,
-                wind_direction=WindDirectionEnum[map_wind_direction(row['wind_direction'])]
+                wind_direction=WindDirectionEnum[map_wind_direction(row['wind_direction'])],
+                is_safe_to_go_out=is_safe 
             )
             
             # Зв'язуємо один до одного і додаємо
@@ -67,14 +67,14 @@ def load_data():
             count += 1
             
     session.commit()
-    print(f" Успішно збережено {count} записів у базу даних!\n")
+    print(f"Успішно збережено {count} записів у базу даних!\n")
 
 def show_data():
     records = session.query(Weather).limit(10).all()
     print("\n--- Останні 10 записів з БД ---")
     for w in records:
-        safe_icon = " Можна гуляти" if w.is_safe_to_go_out else " Сильний вітер"
-        print(f"{w.country} | Вітер: {w.wind.wind_kph} км/год ({w.wind.wind_direction.value}) | {safe_icon}")
+        safe_icon = "Можна гуляти" if w.wind.is_safe_to_go_out else "Сильний вітер"
+        print(f"{w.country} ({w.last_updated}) | Вітер: {w.wind.wind_kph} км/год | {safe_icon}")
     print("-------------------------------\n")
 
 def menu():
