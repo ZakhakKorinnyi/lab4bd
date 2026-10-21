@@ -30,7 +30,7 @@ class Weather(Base):
     __tablename__ = 'weather_data'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    country = Column(String, nullable=False)
+    country = Column(String(255), nullable=False)
     last_updated = Column(Date)
     sunrise = Column(Time)
     
