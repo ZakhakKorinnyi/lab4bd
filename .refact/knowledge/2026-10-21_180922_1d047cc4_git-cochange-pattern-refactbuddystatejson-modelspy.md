@@ -6,7 +6,7 @@ tags:
 - git
 - pattern
 created: 2026-10-21
-updated: 2026-10-21
+updated: 2026-10-22
 filenames:
 - .refact/buddy/state.json
 - models.py
@@ -15,7 +15,7 @@ kind: pattern
 status: proposed
 superseded_by: null
 deprecated_at: null
-review_after: 2026-10-21
+review_after: 2026-10-22
 source_chat_id: null
 created_at: 2026-10-21T15:09:22.198287600+00:00
 summary: null

@@ -1,76 +1,17 @@
-import csv
 from datetime import datetime
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from models import Weather, Wind, WindDirectionEnum
-
-# Підключення до бази даних
-engine = create_engine('mysql+pymysql://root:@localhost/weather_db')
-Session = sessionmaker(bind=engine)
-session = Session()
-
-def map_wind_direction(direction_str):
-    """
-    Перетворює 16-точкову розу вітрів з Kaggle (наприклад, NNE, WSW) 
-    на нашу 8-точкову, яка задана в Enum.
-    """
-    mapping = {
-        'N': 'N', 'S': 'S', 'E': 'E', 'W': 'W',
-        'NE': 'NE', 'NNE': 'NE', 'ENE': 'NE',
-        'NW': 'NW', 'NNW': 'NW', 'WNW': 'NW',
-        'SE': 'SE', 'SSE': 'SE', 'ESE': 'SE',
-        'SW': 'SW', 'SSW': 'SW', 'WSW': 'SW'
-    }
-    return mapping.get(direction_str.upper(), 'N')
+import services
 
 def load_data():
     print("Очищення старих даних...")
-    session.query(Wind).delete()
-    session.query(Weather).delete()
-    session.commit()
+    services.clear_old_data()
 
     print("Завантаження даних з CSV (перші 100 записів)...")
-    count = 0
-    with open('weather.csv', mode='r', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            if count >= 100:  # 100 рядків, щоб база не зависала при 13 тисячах
-                break
-            
-            # Форматування дати та часу
-            date_str = row['last_updated'].split()[0] 
-            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-            time_obj = datetime.strptime(row['sunrise'], '%I:%M %p').time()
-            
-            # Чи безпечно виходити на вулицю?
-            wind_speed = float(row['wind_kph'])
-            is_safe = wind_speed < 12.0
-
-            # Створення основної таблиці
-            weather = Weather(
-                country=row['country'],
-                last_updated=date_obj,
-                sunrise=time_obj
-            )
-            
-            # 4. Створення таблиці вітру
-            wind = Wind(
-                wind_degree=int(row['wind_degree']),
-                wind_kph=wind_speed,
-                wind_direction=WindDirectionEnum[map_wind_direction(row['wind_direction'])],
-                is_safe_to_go_out=is_safe 
-            )
-            
-            # Зв'язуємо один до одного і додаємо
-            weather.wind = wind
-            session.add(weather)
-            count += 1
-            
-    session.commit()
+    count = services.process_and_load_csv()
+    
     print(f"Успішно збережено {count} записів у базу даних!\n")
 
 def show_data():
-    records = session.query(Weather).limit(10).all()
+    records = services.get_data_for_show()
     print("\n--- Останні 10 записів з БД ---")
     for w in records:
         safe_icon = "Можна гуляти" if w.wind.is_safe_to_go_out else "Сильний вітер"
@@ -87,10 +28,7 @@ def search_weather():
         date_obj = datetime.strptime(search_date, '%Y-%m-%d').date()
         
         # Пошук записів у базі за країною та датою
-        results = session.query(Weather).filter(
-            Weather.country.ilike(f"%{search_country}%"),
-            Weather.last_updated == date_obj
-        ).all()
+        results = services.search_weather_logic(search_country, date_obj)
         
         if not results:
             print("За вашим запитом нічого не знайдено.\n")
